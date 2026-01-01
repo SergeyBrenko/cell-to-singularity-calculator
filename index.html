@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wait Time Calculator</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --panel: rgba(255, 255, 255, 0.06);
+        --panel2: rgba(255, 255, 255, 0.08);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.7);
+        --muted2: rgba(255, 255, 255, 0.55);
+        --border: rgba(255, 255, 255, 0.12);
+        --accent: #78a6ff;
+        --danger: #ff6a7a;
+        --shadow: rgba(0, 0, 0, 0.35);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
+          Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--text);
+        background: radial-gradient(1200px 600px at 20% 10%, rgba(120, 166, 255, 0.25), transparent 55%),
+          radial-gradient(1000px 600px at 80% 30%, rgba(116, 255, 208, 0.12), transparent 60%),
+          var(--bg);
+      }
+
+      .wrap {
+        max-width: 960px;
+        margin: 18px auto;
+        padding: 0 14px;
+      }
+
+      .header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .title {
+        font-size: 16px;
+        letter-spacing: 0.2px;
+        margin: 0;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--muted2);
+        font-size: 12px;
+      }
+
+      .card {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.05));
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 10px 28px var(--shadow);
+        overflow: hidden;
+      }
+
+      .tabs {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.1);
+        overflow-x: auto;
+      }
+
+      .tab {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      .tab:hover {
+        background: var(--panel2);
+        color: var(--text);
+      }
+
+      .tab.active {
+        color: var(--text);
+        border-color: rgba(120, 166, 255, 0.55);
+        background: rgba(120, 166, 255, 0.14);
+      }
+
+      .content {
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 10px;
+        align-items: center;
+      }
+
+      @media (max-width: 720px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .sci {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 8px;
+        align-items: center;
+        min-width: 0;
+      }
+
+      .times {
+        color: var(--muted2);
+        font-size: 13px;
+        white-space: nowrap;
+        user-select: none;
+      }
+
+      .control {
+        display: flex;
+        align-items: stretch;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .stepper {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        padding: 0 6px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--panel);
+        flex: 0 0 auto;
+      }
+
+      .btn {
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+        font-size: 16px;
+        display: grid;
+        place-items: center;
+      }
+
+      .stepper .btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.14);
+        font-size: 14px;
+      }
+
+      .btn:hover {
+        background: var(--panel2);
+      }
+
+      .stepper .btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .inp {
+        width: 100%;
+        border: 1px solid var(--border);
+        outline: none;
+        padding: 10px 10px;
+        background: var(--panel);
+        color: var(--text);
+        font-size: 14px;
+        min-width: 0;
+        font-variant-numeric: tabular-nums;
+        border-radius: 10px;
+      }
+
+      .inp::placeholder {
+        color: rgba(255, 255, 255, 0.35);
+      }
+
+      .metaRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 13px;
+        user-select: none;
+      }
+
+      .check input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent);
+      }
+
+      .result {
+        border-top: 1px solid var(--border);
+        padding: 12px;
+        display: grid;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.1);
+      }
+
+      .resultTitle {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .resultTitle h2 {
+        margin: 0;
+        font-size: 14px;
+        color: var(--text);
+        letter-spacing: 0.2px;
+      }
+
+      .status {
+        font-size: 12px;
+        color: var(--muted2);
+        margin: 0;
+      }
+
+      .value {
+        font-size: 18px;
+        font-variant-numeric: tabular-nums;
+        margin: 0;
+      }
+
+      .valueSmall {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .error {
+        color: var(--danger);
+      }
+
+      .hint {
+        color: var(--muted2);
+        font-size: 12px;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="header">
+        <h1 class="title">Wait Time Calculator</h1>
+        <p class="subtitle">Scientific notation input: mantissa × 10^exponent</p>
+      </div>
+
+      <div class="card">
+        <div class="tabs" role="tablist" aria-label="Tabs">
+          <button class="tab" type="button" data-tab="main">основное</button>
+          <button class="tab" type="button" data-tab="valley">долина</button>
+          <button class="tab" type="button" data-tab="space">космос</button>
+          <button class="tab" type="button" data-tab="event">событие</button>
+        </div>
+        <div class="content">
+          <div class="row">
+            <div class="label">Start value</div>
+            <div class="sci">
+              <div class="control">
+                <input
+                  id="startMantissa"
+                  class="inp"
+                  type="number"
+                  step="0.1"
+                  value="3.6"
+                  inputmode="decimal"
+                />
+                <div class="stepper" aria-label="Start mantissa controls">
+                  <button class="btn" type="button" data-step="startMantissa" data-delta="-1">-</button>
+                  <button class="btn" type="button" data-step="startMantissa" data-delta="1">+</button>
+                </div>
+              </div>
+              <div class="times">× 10^</div>
+              <div class="control">
+                <input
+                  id="startExponent"
+                  class="inp"
+                  type="text"
+                  inputmode="numeric"
+                  value="25"
+                  aria-label="Start exponent"
+                />
+                <div class="stepper" aria-label="Start exponent controls">
+                  <button class="btn" type="button" data-step="startExponent" data-delta="-1">-</button>
+                  <button class="btn" type="button" data-step="startExponent" data-delta="1">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="label">Target value</div>
+            <div class="sci">
+              <div class="control">
+                <input
+                  id="targetMantissa"
+                  class="inp"
+                  type="number"
+                  step="0.1"
+                  value="7.2"
+                  inputmode="decimal"
+                />
+                <div class="stepper" aria-label="Target mantissa controls">
+                  <button class="btn" type="button" data-step="targetMantissa" data-delta="-1">-</button>
+                  <button class="btn" type="button" data-step="targetMantissa" data-delta="1">+</button>
+                </div>
+              </div>
+              <div class="times">× 10^</div>
+              <div class="control">
+                <input
+                  id="targetExponent"
+                  class="inp"
+                  type="text"
+                  inputmode="numeric"
+                  value="25"
+                  aria-label="Target exponent"
+                />
+                <div class="stepper" aria-label="Target exponent controls">
+                  <button class="btn" type="button" data-step="targetExponent" data-delta="-1">-</button>
+                  <button class="btn" type="button" data-step="targetExponent" data-delta="1">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="label">Increase per second</div>
+            <div class="sci">
+              <div class="control">
+                <input
+                  id="rateMantissa"
+                  class="inp"
+                  type="number"
+                  step="0.1"
+                  value="1"
+                  inputmode="decimal"
+                />
+                <div class="stepper" aria-label="Rate mantissa controls">
+                  <button class="btn" type="button" data-step="rateMantissa" data-delta="-1">-</button>
+                  <button class="btn" type="button" data-step="rateMantissa" data-delta="1">+</button>
+                </div>
+              </div>
+              <div class="times">× 10^</div>
+              <div class="control">
+                <input
+                  id="rateExponent"
+                  class="inp"
+                  type="text"
+                  inputmode="numeric"
+                  value="0"
+                  aria-label="Rate exponent"
+                />
+                <div class="stepper" aria-label="Rate exponent controls">
+                  <button class="btn" type="button" data-step="rateExponent" data-delta="-1">-</button>
+                  <button class="btn" type="button" data-step="rateExponent" data-delta="1">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="metaRow">
+            <label class="check">
+              <input id="divideBy2" type="checkbox" />
+              Devide time by 2
+            </label>
+            <div class="hint">
+              Time = (Target − Start) / Rate
+            </div>
+          </div>
+        </div>
+
+        <div class="result">
+          <div class="resultTitle">
+            <h2>Time to reach target</h2>
+            <p id="status" class="status">Ready</p>
+          </div>
+          <p id="timeHuman" class="value">—</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const MAX_ALIGN_DIGITS = 24n;
+      const STORAGE_KEY = "waitTimeCalculator.v2";
+      const TAB_KEY = `${STORAGE_KEY}.activeTab`;
+      const TABS = ["main", "valley", "space", "event"];
+      const STATE_IDS = [
+        "startMantissa",
+        "startExponent",
+        "targetMantissa",
+        "targetExponent",
+        "rateMantissa",
+        "rateExponent",
+      ];
+
+      let activeTab = "main";
+
+      function getStoredActiveTab() {
+        const t = localStorage.getItem(TAB_KEY);
+        return TABS.includes(t) ? t : "main";
+      }
+
+      function updateTabsUI() {
+        const buttons = document.querySelectorAll(".tab[data-tab]");
+        for (const btn of buttons) {
+          const tab = btn.getAttribute("data-tab");
+          btn.classList.toggle("active", tab === activeTab);
+        }
+      }
+
+      function setActiveTab(nextTab) {
+        activeTab = TABS.includes(nextTab) ? nextTab : "main";
+        localStorage.setItem(TAB_KEY, activeTab);
+        updateTabsUI();
+      }
+
+      function isFiniteNumber(x) {
+        return typeof x === "number" && Number.isFinite(x);
+      }
+
+      function pow10(n) {
+        return 10 ** n;
+      }
+
+      function normalizeSci(s) {
+        let m = s.m;
+        let e = s.e;
+
+        if (!isFiniteNumber(m) || m === 0) {
+          return { m: 0, e: 0n };
+        }
+
+        const sign = m < 0 ? -1 : 1;
+        m = Math.abs(m);
+
+        if (m < 1) {
+          while (m !== 0 && m < 1) {
+            m *= 10;
+            e -= 1n;
+          }
+        } else if (m >= 10) {
+          while (m >= 10) {
+            m /= 10;
+            e += 1n;
+          }
+        }
+
+        return { m: sign * m, e };
+      }
+
+      function parseBigIntStrict(str) {
+        const s = String(str).trim();
+        if (s === "") return null;
+        if (!/^[+-]?\d+$/.test(s)) return null;
+        try {
+          return BigInt(s);
+        } catch {
+          return null;
+        }
+      }
+
+      function loadState(tab) {
+        let parsed = null;
+        try {
+          const raw = localStorage.getItem(`${STORAGE_KEY}.${tab}`);
+          if (raw) parsed = JSON.parse(raw);
+        } catch {
+          parsed = null;
+        }
+
+        for (const id of STATE_IDS) {
+          const el = document.getElementById(id);
+          const v = parsed && typeof parsed[id] === "string" ? parsed[id] : "1";
+          el.value = v;
+        }
+
+        const divideBy2El = document.getElementById("divideBy2");
+        divideBy2El.checked = Boolean(parsed && parsed.divideBy2 === true);
+      }
+
+      function saveState(tab) {
+        const state = {};
+        for (const id of STATE_IDS) {
+          const el = document.getElementById(id);
+          state[id] = String(el.value);
+        }
+        state.divideBy2 = Boolean(document.getElementById("divideBy2").checked);
+        try {
+          localStorage.setItem(`${STORAGE_KEY}.${tab}`, JSON.stringify(state));
+        } catch {
+          // ignore
+        }
+      }
+
+      function readSci(prefix) {
+        const mEl = document.getElementById(prefix + "Mantissa");
+        const eEl = document.getElementById(prefix + "Exponent");
+
+        const m = Number(mEl.value);
+        const e = parseBigIntStrict(eEl.value);
+
+        if (!isFiniteNumber(m)) {
+          return { ok: false, error: "Mantissa must be a valid number." };
+        }
+        if (e === null) {
+          return { ok: false, error: "Exponent must be an integer." };
+        }
+
+        return { ok: true, value: normalizeSci({ m, e }) };
+      }
+
+      function compareAbs(a, b) {
+        if (a.m === 0 && b.m === 0) return 0;
+        if (a.m === 0) return -1;
+        if (b.m === 0) return 1;
+
+        if (a.e > b.e) return 1;
+        if (a.e < b.e) return -1;
+
+        const am = Math.abs(a.m);
+        const bm = Math.abs(b.m);
+        if (am > bm) return 1;
+        if (am < bm) return -1;
+        return 0;
+      }
+
+      function addSci(a, b) {
+        a = normalizeSci(a);
+        b = normalizeSci(b);
+
+        if (a.m === 0) return b;
+        if (b.m === 0) return a;
+
+        if (a.e === b.e) {
+          return normalizeSci({ m: a.m + b.m, e: a.e });
+        }
+
+        let hi = a;
+        let lo = b;
+        if (hi.e < lo.e) {
+          hi = b;
+          lo = a;
+        }
+
+        const diff = hi.e - lo.e;
+        if (diff > MAX_ALIGN_DIGITS) {
+          return hi;
+        }
+
+        const scale = pow10(Number(-diff));
+        return normalizeSci({ m: hi.m + lo.m * scale, e: hi.e });
+      }
+
+      function subSci(a, b) {
+        return addSci(a, { m: -b.m, e: b.e });
+      }
+
+      function divSci(a, b) {
+        a = normalizeSci(a);
+        b = normalizeSci(b);
+
+        if (b.m === 0) {
+          return { ok: false, error: "Rate must not be zero." };
+        }
+
+        return { ok: true, value: normalizeSci({ m: a.m / b.m, e: a.e - b.e }) };
+      }
+
+      function sciToString(s, significantDigits = 8) {
+        s = normalizeSci(s);
+        if (s.m === 0) return "0 seconds";
+
+        const mStr = Number(s.m).toPrecision(significantDigits);
+        const eStr = s.e.toString();
+        return `${mStr} × 10^${eStr} seconds`;
+      }
+
+      function sciToNumberSecondsIfReasonable(s) {
+        s = normalizeSci(s);
+        if (s.m === 0) return 0;
+
+        if (s.e > 18n || s.e < -6n) return null;
+
+        const n = s.m * pow10(Number(s.e));
+        if (!isFiniteNumber(n)) return null;
+        return n;
+      }
+
+      function formatApproxLargeYears(secondsSci) {
+        const secondsPerYear = { m: 3.1536, e: 7n };
+        const yearsRes = divSci(secondsSci, secondsPerYear);
+        if (!yearsRes.ok) return "—";
+
+        const years = normalizeSci(yearsRes.value);
+        if (years.m === 0) return "0 seconds";
+
+        const suffixes = [
+          "",
+          "thousand",
+          "million",
+          "billion",
+          "trillion",
+          "quadrillion",
+          "quintillion",
+          "sextillion",
+          "septillion",
+          "octillion",
+          "nonillion",
+          "decillion",
+        ];
+
+        const e = years.e;
+        const groupIndex = e >= 0n ? Number(e / 3n) : 0;
+        const suffix = suffixes[Math.min(groupIndex, suffixes.length - 1)];
+        const groupExp = BigInt(groupIndex) * 3n;
+        const within = Number(e - groupExp);
+        const scaled = years.m * pow10(within);
+
+        const formatted = Number(scaled).toFixed(scaled >= 100 ? 0 : scaled >= 10 ? 1 : 2);
+        const label = suffix ? `${formatted} ${suffix} years` : `${formatted} years`;
+        return `≈ ${label}`;
+      }
+
+      function formatHumanSeconds(seconds) {
+        if (!isFiniteNumber(seconds) || seconds < 0) return "—";
+
+        const units = [
+          { name: "year", s: 365 * 24 * 3600 },
+          { name: "day", s: 24 * 3600 },
+          { name: "hour", s: 3600 },
+          { name: "minute", s: 60 },
+          { name: "second", s: 1 },
+        ];
+
+        if (seconds === 0) return "0 seconds";
+
+        let remaining = seconds;
+        const parts = [];
+        for (const u of units) {
+          if (parts.length >= 3) break;
+          const qty = Math.floor(remaining / u.s);
+          if (qty <= 0) continue;
+          remaining -= qty * u.s;
+          parts.push(`${qty} ${u.name}${qty === 1 ? "" : "s"}`);
+        }
+
+        if (parts.length === 0) {
+          return `${seconds.toFixed(3)} seconds`;
+        }
+
+        return parts.join(" ");
+      }
+
+      function setStatus(text, isError) {
+        const el = document.getElementById("status");
+        el.textContent = text;
+        el.classList.toggle("error", Boolean(isError));
+      }
+
+      function compute() {
+        const startR = readSci("start");
+        if (!startR.ok) {
+          setStatus(startR.error, true);
+          return { ok: false };
+        }
+
+        const targetR = readSci("target");
+        if (!targetR.ok) {
+          setStatus(targetR.error, true);
+          return { ok: false };
+        }
+
+        const rateR = readSci("rate");
+        if (!rateR.ok) {
+          setStatus(rateR.error, true);
+          return { ok: false };
+        }
+
+        if (rateR.value.m <= 0) {
+          setStatus("Rate must be greater than 0.", true);
+          return { ok: false };
+        }
+
+        const delta = subSci(targetR.value, startR.value);
+        if (delta.m < 0) {
+          setStatus("Target must be greater than or equal to Start.", true);
+          return { ok: false };
+        }
+
+        const timeDiv = divSci(delta, rateR.value);
+        if (!timeDiv.ok) {
+          setStatus(timeDiv.error, true);
+          return { ok: false };
+        }
+
+        let time = timeDiv.value;
+        const divideBy2 = document.getElementById("divideBy2").checked;
+        if (divideBy2) {
+          time = divSci(time, { m: 2, e: 0n }).value;
+        }
+
+        return { ok: true, value: time };
+      }
+
+      function render() {
+        const tHuman = document.getElementById("timeHuman");
+
+        const res = compute();
+        if (!res.ok) {
+          tHuman.textContent = "—";
+          return;
+        }
+
+        setStatus("Calculated", false);
+        const n = sciToNumberSecondsIfReasonable(res.value);
+        if (n === null) {
+          tHuman.textContent = formatApproxLargeYears(res.value);
+          return;
+        }
+
+        tHuman.textContent = formatHumanSeconds(n);
+      }
+
+      function bumpValue(id, delta) {
+        const el = document.getElementById(id);
+
+        if (id.endsWith("Exponent")) {
+          const cur = parseBigIntStrict(el.value) ?? 0n;
+          el.value = (cur + BigInt(delta)).toString();
+          saveState(activeTab);
+          render();
+          return;
+        }
+
+        const cur = Number(el.value);
+        const next = (isFiniteNumber(cur) ? cur : 0) + Number(delta);
+        el.value = String(next);
+        saveState(activeTab);
+        render();
+      }
+
+      document.addEventListener("click", (e) => {
+        const t = e.target;
+        if (!(t instanceof HTMLElement)) return;
+        if (t.matches(".tab[data-tab]")) {
+          const next = t.getAttribute("data-tab");
+          if (!next) return;
+          saveState(activeTab);
+          setActiveTab(next);
+          loadState(activeTab);
+          saveState(activeTab);
+          render();
+          return;
+        }
+        if (!t.matches("button[data-step][data-delta]")) return;
+
+        const step = t.getAttribute("data-step");
+        const delta = t.getAttribute("data-delta");
+        if (!step || !delta) return;
+
+        bumpValue(step, delta);
+      });
+
+      for (const id of [
+        "startMantissa",
+        "startExponent",
+        "targetMantissa",
+        "targetExponent",
+        "rateMantissa",
+        "rateExponent",
+        "divideBy2",
+      ]) {
+        const el = document.getElementById(id);
+        const handler = () => {
+          saveState(activeTab);
+          render();
+        };
+        el.addEventListener("input", handler);
+        el.addEventListener("change", handler);
+      }
+
+      setActiveTab(getStoredActiveTab());
+      loadState(activeTab);
+      saveState(activeTab);
+      render();
+    </script>
+  </body>
+</html>
